@@ -2,6 +2,78 @@ import { callApi } from './apiClient';
 
 export const API_CALL = 'API_CALL';
 
+export const defaultConfig = {};
+
+/**
+ * Api middleware that takes an action which contains API_CALL property and
+ * dispatches 3 action types based on the request status. Api call property
+ * should at least contain endpoint url and action set, which is created by a
+ * helper function createApiActionSet.
+ * @returns {function(*=): Function}
+ */
+export const apiMiddleware = (
+  config = defaultConfig,
+) => store => next => action => {
+  const apiCall = action[API_CALL];
+
+  // Ignore all non api-related actions
+  if (typeof apiCall === 'undefined') {
+    return next(action);
+  }
+
+  const { getAuthToken } = config;
+
+  const {
+    url,
+    body,
+    actions,
+    meta,
+    method,
+    options,
+    authenticated = true,
+  } = apiCall;
+
+  if (typeof url !== 'string') {
+    throw new Error('Api call action does not contain url string');
+  }
+
+  if (!actions) {
+    throw new Error('Api call action does not contain action group');
+  }
+
+  if (!actions.SUCCESS || !actions.ERROR || !actions.LOADING) {
+    throw new Error(
+      'Api call does not contain a correct action group. ' +
+        'Please use createApiActionSet to create actions.',
+    );
+  }
+
+  let apiOptions = { ...options };
+
+  if (authenticated && getAuthToken) {
+    apiOptions = {
+      ...apiOptions,
+      headers: {
+        ...apiOptions.headers,
+        Authorization: `Bearer ${getAuthToken(store)}`,
+      },
+    };
+  }
+
+  // Dispatch loading action
+  next(createLoadingAction(actions.LOADING, meta));
+
+  return callApi(url, body, method, apiOptions).then(
+    response => next(createSuccessAction(actions.SUCCESS, response, meta)),
+    error => {
+      if (error.unauthorized) {
+        // Dispatch LOGOUT action here
+      }
+      return next(createErrorAction(actions.ERROR, error, meta));
+    },
+  );
+};
+
 /**
  * Default preferences for apiMiddleware
  * @type {{getAuthToken: null}}
@@ -83,71 +155,3 @@ export const createLoadingAction = (action, meta) => ({
   apiActionType: apiActionType.LOADING,
   ...meta,
 });
-
-/**
- * Api middleware that takes an action which contains API_CALL property and
- * dispatches 3 action types based on the request status. Api call property
- * should at least contain endpoint url and action set, which is created by a
- * helper function createApiActionSet.
- * @returns {function(*=): Function}
- */
-export const apiMiddleware = () => store => next => action => {
-  const apiCall = action[API_CALL];
-
-  // Ignore all non api-related actions
-  if (typeof apiCall === 'undefined') {
-    return next(action);
-  }
-
-  const getAuthToken = () => store.getState().auth.accessToken;
-
-  const {
-    url,
-    body,
-    actions,
-    meta,
-    method,
-    options,
-    authenticated = true,
-  } = apiCall;
-
-  if (typeof url !== 'string') {
-    throw new Error('Api call action does not contain url string');
-  }
-
-  if (!actions) {
-    throw new Error('Api call action does not contain action group');
-  }
-
-  if (!actions.SUCCESS || !actions.ERROR || !actions.LOADING) {
-    throw new Error(
-      'Api call does not contain a correct action group. ' +
-        'Please use createApiActionSet to create actions.',
-    );
-  }
-
-  let apiOptions = { ...options };
-
-  if (authenticated && getAuthToken) {
-    apiOptions = {
-      ...apiOptions,
-      headers: {
-        ...apiOptions.headers,
-        Authorization: `Bearer ${getAuthToken()}`,
-      },
-    };
-  }
-
-  // Dispatch loading action
-  next(createLoadingAction(actions.LOADING, meta));
-
-  return callApi(url, body, method, apiOptions).then(
-    response => next(createSuccessAction(actions.SUCCESS, response, meta)),
-    error => {
-      if (error.unauthorized) {
-        // Dispatch LOGOUT action here
-      }
-      return next(createErrorAction(actions.ERROR, error, meta));
-    },
-  );
-};

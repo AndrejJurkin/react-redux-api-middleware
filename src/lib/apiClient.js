@@ -1,12 +1,12 @@
 /* eslint-disable no-unused-vars */
-/*
+/**
  * Handle server responses with status code between 200 and 300.
  * This will pass a JSON response to apiMiddleware, which will then create
  * a SUCCESS Redux action.
  */
 export const handleSuccessfulResponse = response => response.json();
 
-/*
+/**
  * Handle server response with status code of 401.
  * This will reject a promise with unauthorized object, which should dispatch
  * a LOGOUT action from apiMiddleware.
@@ -17,7 +17,7 @@ export const handleUnauthorizedResponse = () => {
   return Promise.reject(error);
 };
 
-/*
+/**
  * Reject a promise with error response, which will then dispatch an ERROR
  * action from apiMiddleware.
  */
