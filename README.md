@@ -1,5 +1,5 @@
 # Redux API Middleware
-Loading - Success - Error Redux pattern. Just a little bit less boilerplate.
+Loading - Success - Error, Redux pattern. Just a little bit less boilerplate.
 
 ## How does it work
 1. Create a Redux action and specify network request details.
@@ -8,7 +8,7 @@ const FETCH_USERS = createActionSet('FETCH_USERS');
 
 const action = {
   [API_CALL]: {
-    url: '/some/endpoint,
+    url: '/some/endpoint',
     method: 'GET',
     actions: FETCH_USERS,
   },
