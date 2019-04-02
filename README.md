@@ -1,18 +1,21 @@
 # Redux API Middleware
 Loading - Success - Error, Redux pattern. Just a little bit less boilerplate.
+```
+npm install react-redux-api-middleware
+```
 
 ## How does it work
 1. Create a Redux action and specify network request details.
 ```
 const FETCH_USERS = createActionSet('FETCH_USERS');
 
-const action = {
+const action = () => ({
   [API_CALL]: {
     url: '/some/endpoint',
     method: 'GET',
     actions: FETCH_USERS,
   },
-};
+});
 
 ```
 2. Once you dispatch an action, middleware will perform a network request and dispatch Loading, Success or Error actions.
