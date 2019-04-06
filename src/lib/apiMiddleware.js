@@ -61,15 +61,15 @@ export const apiMiddleware = (
   }
 
   // Dispatch loading action
-  next(createLoadingAction(actions.LOADING, meta));
+  next(createLoadingAction(actions, meta));
 
   return callApi(url, body, method, apiOptions).then(
-    response => next(createSuccessAction(actions.SUCCESS, response, meta)),
+    response => next(createSuccessAction(actions, response, meta)),
     error => {
       if (error.unauthorized) {
         // Dispatch LOGOUT action here
       }
-      return next(createErrorAction(actions.ERROR, error, meta));
+      return next(createErrorAction(actions, error, meta));
     },
   );
 };
@@ -111,14 +111,15 @@ export const createApiActionSet = actionName => ({
  * succeeded. This function is used by apiMiddleware to create
  * actions based on the request state.
  * This should also be used when unit testing the store.
- * @param action The Redux action type
+ * @param actions The ActionSet
  * @param response JSON response received from the remote api
  * @param meta Any additional parameters could be passed here
  * @returns {{type: *, apiActionType: string, response: *}}
  */
-export const createSuccessAction = (action, response, meta) => ({
-  type: action,
+export const createSuccessAction = (actions, response, meta) => ({
+  type: actions.SUCCESS,
   apiActionType: apiActionType.SUCCESS,
+  actionName: actions.actionName,
   response,
   ...meta,
 });
@@ -128,16 +129,17 @@ export const createSuccessAction = (action, response, meta) => ({
  * This function is used by apiMiddleware to create
  * actions based on the request state.
  * This should also be used when unit testing the store.
- * @param action The Redux action type
+ * @param actions The ActionSet
  * @param error The error message parsed from the response
  * @param meta Any additional parameters could be passed here
  * @returns {{type: *, apiActionType: string, rawError: *, error: string}}
  */
-export const createErrorAction = (action, error, meta) => ({
-  type: action,
+export const createErrorAction = (actions, error, meta) => ({
+  type: actions.ERROR,
   apiActionType: apiActionType.ERROR,
   rawError: error,
   error: error.toString(),
+  actionName: actions.actionName,
   ...meta,
 });
 
@@ -146,12 +148,13 @@ export const createErrorAction = (action, error, meta) => ({
  * This function is used by apiMiddleware to create
  * actions based on the request state.
  * This should also be used when unit testing the store.
- * @param action The Redux action type
+ * @param actions The action set
  * @param meta Any additional parameters could be passed here
  * @returns {{type: *, apiActionType: string}}
  */
-export const createLoadingAction = (action, meta) => ({
-  type: action,
+export const createLoadingAction = (actions, meta) => ({
+  type: actions.LOADING,
   apiActionType: apiActionType.LOADING,
+  actionName: actions.actionName,
   ...meta,
 });

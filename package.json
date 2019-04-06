@@ -1,9 +1,9 @@
 {
   "name": "react-redux-api-middleware",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "private": false,
   "repository": {},
-  "license": "LGPL",
+  "license": "MIT",
   "main": "build/index.js",
   "module": "build/es/index.js",
   "files": [
